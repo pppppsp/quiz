@@ -9,7 +9,6 @@ $.ajax({
     success: function (response){
         // console.log(response)
         const data = response.data
-        console.log(data)
         data.forEach(el => {
             for (const [question, answers] of Object.entries(el)) {
                 quizBox.innerHTML += `
@@ -39,8 +38,11 @@ const quizForm = document.getElementById('quiz-form'); // взяли форму 
 const csrf = document.getElementsByName('csrfmiddlewaretoken'); // взяли токен 
 
 
+
+
 const sendData = () => {
-    const elements = [...document.getElementsByClassName('ans')]; // получили варианты ответов
+    const elements = [...document.getElementsByClassName('ans')]; // получили варианты 
+    console.log(elements)
     const data = {}
     data['csrfmiddlewaretoken'] = csrf[0].value // загрузили в словарь токен
     elements.forEach(el => {
@@ -63,7 +65,6 @@ const sendData = () => {
 }
 
 quizForm.addEventListener('submit', e => {
-    e.preventDefault
-
+    e.preventDefault();
     sendData()
 })
