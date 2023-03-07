@@ -3,7 +3,7 @@ from .models import Quiz
 from django.views.generic import ListView
 from django.http import JsonResponse
 from app.models import Question, Answer
-
+from results.models import Result
 
 
 class QuizListView(ListView):
@@ -35,19 +35,19 @@ def save_quiz_view(request, pk):
     if request.method == "POST":
         questions = [] # list с в вопросами 
         data = request.POST
-        data_ = dict(data.lists()) 
+        data_ = dict(data.lists()) # в хороший список
 
         data_.pop('csrfmiddlewaretoken') # удаляем ксрф
 
         for k in data_.keys(): # прогонка по вопросам 
             print('вопрос ключ:', k)
             question = Question.objects.get(text=k)
-            questions.append(question)
+            questions.append(question) # Добавляем в список вопросов
 
         user = request.user # get user
-        quiz = Quiz.objects.get(pk=pk)
+        quiz = Quiz.objects.get(pk=pk) # получение нужного теста
 
-        score = 0
+        score = 0 # балл
         multipler = 100 / quiz.number_of_questions
         results = []
         correct_answer = None
@@ -69,4 +69,15 @@ def save_quiz_view(request, pk):
                 results.append({str(q):{'correct_answer': correct_answer, 'answered':a_selected }})
             else:
                 results.append({str(q):'not answered'})
-    return JsonResponse({'text':'works'})
+
+        score_ = score * multipler
+        Result.objects.create(
+                quiz = quiz,
+                user = user,
+                score = score_
+            )
+        
+        if score_ >= quiz.required_score_to_pass:
+            return JsonResponse({'passed': True, 'score': score_, 'results': results})
+        else:
+            return JsonResponse({'passed': False, 'score': score_, 'results': results})
